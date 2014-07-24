@@ -217,7 +217,7 @@ while users:
             traceback.print_exc()
 
 
-input_raw(u"完成所有任务,按下回车键退出...")
+raw_input(u"完成所有任务,按下回车键退出...")
 
 
 """
