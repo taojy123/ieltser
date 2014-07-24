@@ -209,6 +209,7 @@ while users:
                     open("success.txt", "a").write(success_msg.encode("gbk"))
                     try:
                         users.remove(user)
+                        break
                     except:
                         pass
 
