@@ -1,6 +1,5 @@
 #coding=utf8
 
-
 import cookielib
 import urllib2, urllib
 import time
@@ -11,10 +10,6 @@ import shutil
 import hashlib
 import json
 import pprint
-
-
-
-
 
 
 class User(object):
@@ -60,7 +55,6 @@ class User(object):
         self.areas = ""
         self.centers = []
 
-
     @property
     def login_url(self):
         return "http://ielts.etest.net.cn/login"
@@ -81,7 +75,6 @@ class User(object):
     def reg_url(self):
         return "http://ielts.etest.net.cn/myHome/%s/registration" % self.userid
 
-
     def add_center(self, centerNameCn):
         # centerNameCn must be unicode
         self.centers.append(centerNameCn)
@@ -92,8 +85,6 @@ class User(object):
             aid = self.AREA_MAP[name]
             rs.append(aid)
         self.areas = ",".join(rs)
-
-
 
 
 
@@ -109,6 +100,10 @@ for part in parts:
     user.centers = centers
     users.append(user)
 
+users = users[:10]
+
+
+open("success.txt", "a").write("================================\n")
 
 while users:
     print "=============================================================="
@@ -121,11 +116,17 @@ while users:
 
             print "-------", user.username, '---------'
 
+            # if user.username in open("success").raad():
+            #     users.remove(user)
+            #     print user.username, "Successed"
+            #     continue
+
             cj = cookielib.CookieJar()
-            #opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
-            opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj), urllib2.ProxyHandler({'http':"10.239.120.37:911"}))
+            opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+            #opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj), urllib2.ProxyHandler({'http':"10.239.120.37:911"}))
             opener.addheaders = [('User-agent', 'Mozilla/5.0 (Windows NT 5.2) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/21.0.1180.89 Safari/537.1'),
                                  ('Host', 'ielts.etest.net.cn'), 
+                                 ('Origin', 'http://ielts.etest.net.cn'), 
                                  ]
 
             def get_page(url, data=None):
@@ -162,11 +163,9 @@ while users:
             userid = re.findall(r'ID: </label> <span style=".*">(.*)</span>', p)[0]
             user.userid = userid
 
-            csrfs = re.findall(r'name="CSRFToken" value="(.*)"', p)
-            if not csrfs:
-                p = get_page(user.reg_url)
-                csrfs = re.findall(r'name="CSRFToken" value="(.*)"', p)
-            csrf = csrfs[0]
+            p = get_page(user.reg_url)
+            csrf = re.findall(r'name="CSRFToken" value="(.*)"', p)[0]
+
             print csrf, userid
 
 
@@ -184,6 +183,11 @@ while users:
                     print r["adminDate"], r["centerNameCn"],
                     if r["optStatusEn"] != "Book seat":
                         print r["optStatusCn"]
+                        if r['optStatusEn'] == "Test on the same date already booked, no re-booking allowed":
+                            try:
+                                users.remove(user)
+                            except:
+                                pass
                         continue
 
                     seatGuid = r["seatGuid"]
@@ -199,10 +203,41 @@ while users:
                     if '<li class="active">预订考位成功</li>' not in p:
                         print u"预订失败 下一轮重试"
                         continue
-                    print u"预订考位成功", username, r["adminDate"], r["centerNameCn"]
-                    success_msg = username + u" " + r["adminDate"] + r["centerNameCn"] + u"\n"
-                    open("success.txt", "a").write(success_msg.encode(gbk))
-                    users.remove(user)
+
+                    print u"预订考位成功", user.username, r["adminDate"], r["centerNameCn"]
+                    success_msg = user.username + u" " + r["adminDate"] + u" " + r["centerNameCn"] + u"\n"
+                    open("success.txt", "a").write(success_msg.encode("gbk"))
+                    try:
+                        users.remove(user)
+                    except:
+                        pass
 
         except:
             traceback.print_exc()
+
+
+input_raw(u"完成所有任务,按下回车键退出...")
+
+
+"""
+info.txt example:
+
+1945505
+huangliming
+2014-09-20
+天津,北京
+北京语言大学,天津外国语大学
+
+rrrpvk@qq.com
+Heyunting199759
+2014-09-20
+北京,天津
+天津外国语大学
+
+18801024845
+danielYOUNG2014
+2014-08-09
+北京,天津
+北京外国语大学IELTS考试中心,北京语言大学
+"""
+
