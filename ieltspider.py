@@ -100,7 +100,6 @@ for part in parts:
     user.centers = centers
     users.append(user)
 
-users = users[:10]
 
 
 open("success.txt", "a").write("================================\n")
@@ -114,7 +113,7 @@ while users:
 
             time.sleep(1)
 
-            print "-------", user.username, '---------'
+            print "-------", user.username, "--", user.password, "---------"
 
             # if user.username in open("success").raad():
             #     users.remove(user)
@@ -143,7 +142,8 @@ while users:
                         print "Will try after 1 seconds ..."
                         time.sleep(1)
                         continue
-                raise "Get page failed"
+                print "Get page failed"
+                raise
 
 
             p = get_page(user.login_url)
@@ -158,7 +158,8 @@ while users:
             p = get_page(user.login_url, formData)
 
             if "我的主页" not in p:
-                raise "登陆失败 可能需要验证码"
+                print u"登陆失败 可能需要验证码"
+                raise
 
             userid = re.findall(r'ID: </label> <span style=".*">(.*)</span>', p)[0]
             user.userid = userid
